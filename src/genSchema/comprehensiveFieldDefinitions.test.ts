@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import { generateZodSchemaCode } from './generateZodSchemaCode.js'
 import { getDetailsFromDefinition } from './getDetailsFromDefinition.js'
 

@@ -1,47 +1,41 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.15/schema.json",
-  "files": {
-    "includes": [
-      "src/**/*.ts",
-      "src/**/*.js",
-      "**/*.json",
-      "vitest.customMatchers.ts",
-      "bunfig.toml"
-    ]
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "style": {
-        "noParameterAssign": "error",
-        "useAsConstAssertion": "error",
-        "useDefaultParameterLast": "error",
-        "useEnumInitializers": "error",
-        "useSelfClosingElements": "error",
-        "useSingleVarDeclarator": "error",
-        "noUnusedTemplateLiteral": "error",
-        "useNumberNamespace": "error",
-        "noInferrableTypes": "error",
-        "noUselessElse": "error"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": true,
-    "formatWithErrors": false,
-    "indentStyle": "tab",
-    "indentWidth": 2,
-    "lineWidth": 120,
-    "lineEnding": "lf"
-  },
-  "javascript": {
-    "formatter": {
-      "enabled": true,
-      "semicolons": "asNeeded",
-      "quoteStyle": "single",
-      "trailingCommas": "all",
-      "arrowParentheses": "asNeeded"
-    }
-  }
+	"$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+	"files": {
+		"includes": ["src/**/*.ts", "src/**/*.js", "**/*.json", "vitest.customMatchers.ts", "bunfig.toml"]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"noParameterAssign": "error",
+				"useAsConstAssertion": "error",
+				"useDefaultParameterLast": "error",
+				"useEnumInitializers": "error",
+				"useSelfClosingElements": "error",
+				"useSingleVarDeclarator": "error",
+				"noUnusedTemplateLiteral": "error",
+				"useNumberNamespace": "error",
+				"noInferrableTypes": "error",
+				"noUselessElse": "error"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineWidth": 120,
+		"lineEnding": "lf"
+	},
+	"javascript": {
+		"formatter": {
+			"enabled": true,
+			"semicolons": "asNeeded",
+			"quoteStyle": "single",
+			"trailingCommas": "all",
+			"arrowParentheses": "asNeeded"
+		}
+	}
 }

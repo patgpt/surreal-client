@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 import { parseArgs } from 'node:util'
 import { renderBanner } from './cli/banner.js'
-import { runWizard } from './cli/wizard.js'
 import { runGeneration } from './cli/runner.js'
+import { runWizard } from './cli/wizard.js'
 import { configFileSchema } from './config/configFileSchema.js'
 
 const VERSION = '0.0.1'

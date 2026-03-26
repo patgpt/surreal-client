@@ -1,6 +1,6 @@
 import type { AnyAuth } from 'surrealdb'
-import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers'
 import { Surreal } from 'surrealdb'
+import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers'
 import type { Config } from '../config/types.js'
 
 let db: Surreal

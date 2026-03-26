@@ -1,13 +1,13 @@
 import { resolve } from 'node:path'
 import { outro, spinner } from '@clack/prompts'
 import chalk from 'chalk'
+import type { Config } from '../config/types.js'
 import { closeDb, connectDb, insertDefinitions } from '../database/db.js'
 import { getAllTableInfo } from '../database/getAllTableInfo.js'
 import { generateClientJs } from '../genClient/generateClientJs.js'
 import { generateTableSchema } from '../genSchema/generateTableSchema.js'
 import { printSorry } from '../helper/printSorry.js'
 import { readSchemaDefinitions } from '../schema/readSchemaDefinitions.js'
-import type { Config } from '../config/types.js'
 import { label } from './banner.js'
 
 export async function runGeneration(config: Config): Promise<void> {

@@ -1,15 +1,16 @@
-const getTableInfoMock = vi.fn().mockResolvedValue({
+import { mock } from 'bun:test'
+
+const getTableInfoMock = mock().mockResolvedValue({
 	fields: { name: 'DEFINE FIELD name ON command TYPE string PERMISSIONS FULL' },
 })
 
-vi.mock('../database/getTableInfo.js', () => ({
+mock.module('../database/getTableInfo.js', () => ({
 	getTableInfo: getTableInfoMock,
 }))
 
 describe('generateTableSchema', () => {
 	beforeEach(() => {
-		vi.resetModules()
-		vi.clearAllMocks()
+		getTableInfoMock.mockClear()
 		getTableInfoMock.mockResolvedValue({
 			fields: { name: 'DEFINE FIELD name ON command TYPE string PERMISSIONS FULL' },
 		})
