@@ -84,7 +84,7 @@ Generate zod schema and typescript client code from running Surreal database
 Options:
   -V, --version         output the version number
   -f, --schemaFile      a SurrealQL file containing the definitions (default: myschema.surql)
-  -c, --config           config file (default: surql-gen.json)
+  -c, --config           config file (default: surreal-codegen.config.json)
   -s, --surreal         SurrealDB connection url (default: http://localhost:8000)
   -u, --username        auth username (default: root)
   -p, --password        auth password (default: root)

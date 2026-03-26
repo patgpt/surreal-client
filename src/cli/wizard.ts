@@ -38,7 +38,7 @@ async function tryLoadConfigFile(path: string): Promise<Partial<Config>> {
 
 export async function runWizard(opts: WizardOptions = {}): Promise<Config & { configPath: string }> {
 	const flags = opts.flags ?? {}
-	const cfgPath = resolve(process.cwd(), flags.config ?? 'surql-gen.json')
+	const cfgPath = resolve(process.cwd(), flags.config ?? 'surreal-codegen.config.json')
 	const existingConfig = await tryLoadConfigFile(cfgPath)
 	const hasExisting = existsSync(cfgPath)
 
@@ -165,7 +165,7 @@ export async function runWizard(opts: WizardOptions = {}): Promise<Config & { co
 
 	const saveConfig = guard(
 		await confirm({
-			message: chalk.cyan('Save config to ') + chalk.dim('surql-gen.json') + chalk.cyan('?'),
+			message: chalk.cyan('Save config to ') + chalk.dim('surreal-codegen.config.json') + chalk.cyan('?'),
 			initialValue: true,
 		}),
 	)
