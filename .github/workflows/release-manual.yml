@@ -1,0 +1,112 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_jsr:
+        description: Also run JSR publish after npm publish
+        required: true
+        default: false
+        type: boolean
+      confirm_docs_updated:
+        description: Confirm README/docs are up to date for this release
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: manual-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release Package
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Upgrade npm for trusted publishing
+        run: |
+          npm install --global npm@latest
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure docs confirmation
+        if: inputs.confirm_docs_updated != true
+        run: |
+          echo "Release aborted: confirm_docs_updated must be true."
+          exit 1
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate release version files
+        id: pkg
+        run: |
+          PACKAGE_VERSION=$(node -e "process.stdout.write(require('./package.json').version)")
+          JSR_VERSION=$(node -e "process.stdout.write(require('./jsr.json').version)")
+          if [ "$PACKAGE_VERSION" != "$JSR_VERSION" ]; then
+            echo "Version mismatch: package.json=$PACKAGE_VERSION jsr.json=$JSR_VERSION"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$PACKAGE_VERSION" >/dev/null; then
+            echo "Tag v$PACKAGE_VERSION already exists locally."
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$PACKAGE_VERSION" >/dev/null 2>&1; then
+            echo "Tag v$PACKAGE_VERSION already exists on origin."
+            exit 1
+          fi
+          echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate OIDC environment
+        run: |
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" || (echo "Missing ACTIONS_ID_TOKEN_REQUEST_URL. Ensure id-token: write is granted." && exit 1)
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" || (echo "Missing ACTIONS_ID_TOKEN_REQUEST_TOKEN. Ensure id-token: write is granted." && exit 1)
+
+      - name: Publish to npm (Trusted Publishing)
+        run: npm publish --access public --provenance --ignore-scripts
+
+      - name: Publish to JSR
+        if: inputs.publish_jsr == true
+        run: npx jsr publish
+
+      - name: Create and push release tag
+        run: |
+          git tag "v${{ steps.pkg.outputs.version }}"
+          git push origin "v${{ steps.pkg.outputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.pkg.outputs.version }}" \
+            --target main \
+            --title "v${{ steps.pkg.outputs.version }}" \
+            --generate-notes

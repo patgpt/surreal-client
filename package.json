@@ -1,0 +1,78 @@
+{
+  "name": "surreal-client",
+  "private": false,
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=18"
+  },
+  "description": "A small tool which generates a typescript client for SurrealDB based on the schema of a given database",
+  "keywords": [
+    "typescript",
+    "surrealdb",
+    "client",
+    "javascript",
+    "zod",
+    "orm",
+    "database",
+    "generator",
+    "tool"
+  ],
+  "author": {
+    "name": "Patrick Kelly",
+    "url": "https://github.com/patgpt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patgpt/surreal-client.git"
+  },
+  "homepage": "https://github.com/patgpt/surreal-client",
+  "bugs": {
+    "url": "https://github.com/patgpt/surreal-client/issues",
+    "email": "project@hostname.com"
+  },
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "surql-gen": "./dist/index.js"
+  },
+  "scripts": {
+    "clean": "node clean.mjs",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "build": "npm run clean && node build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "npx @biomejs/biome check --write .",
+    "test": "vitest --run",
+    "prepublishOnly": "npm run typecheck && vitest --no-watch && npm run build",
+    "postpublish": "npx jsr publish"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.15",
+    "@types/node": "^25.2.3",
+    "esbuild": "^0.27.3",
+    "jsr": "^0.14.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "mkdirp": "^3.0.1",
+    "rimraf": "^6.1.2",
+    "surrealdb": "^2.0.3",
+    "testcontainers": "^11.11.0",
+    "zod": "^4.3.6"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js"
+}
