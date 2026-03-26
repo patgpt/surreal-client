@@ -1,156 +1,86 @@
-#!/usr/bin/env node
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+#!/usr/bin/env bun
+import { parseArgs } from 'node:util'
+import { renderBanner } from './cli/banner.js'
+import { runWizard } from './cli/wizard.js'
+import { runGeneration } from './cli/runner.js'
+import { configFileSchema } from './config/configFileSchema.js'
 
-import { program } from "commander";
+const VERSION = '0.0.1'
 
-import { configFileSchema } from "./config/configFileSchema.js";
-import { closeDb, connectDb, insertDefinitions } from "./database/db.js";
-import { getAllTableInfo } from "./database/getAllTableInfo.js";
-import { generateClientJs } from "./genClient/generateClientJs.js";
-import { generateTableSchema } from "./genSchema/generateTableSchema.js";
-import { printSorry } from "./helper/printSorry.js";
-import { readSchemaDefinitions } from "./schema/readSchemaDefinitions.js";
+const HELP = `
+  surreal-codegen — SurrealDB TypeScript client generator
+
+  USAGE
+    bunx surreal-codegen [flags]
+
+  FLAGS
+    -f, --schema-file   SurrealQL file or directory
+    -c, --config        Config file (default: surql-gen.json)
+    -s, --surreal       SurrealDB URL (default: http://localhost:8000)
+    -u, --username      Auth username (default: root)
+    -p, --password      Auth password (default: root)
+    -n, --ns            Namespace (default: test)
+    -d, --db            Database (default: test)
+    -o, --output        Output folder (default: client_generated)
+        --no-client     Skip TypeScript client generation
+    -i, --image         SurrealDB Docker image
+    -v, --version       Print version and exit
+    -h, --help          Show this help
+
+  Run without flags for the interactive wizard.
+`.trimEnd()
 
 const main = async () => {
-	program
-		.name("surql-gen")
-		.description(
-			"Generate zod schema and typescript client code from running Surreal database or schema file",
-		)
-		.version("1.0.0");
+	const { values } = parseArgs({
+		args: process.argv.slice(2),
+		allowPositionals: true,
+		options: {
+			'schema-file': { type: 'string', short: 'f' },
+			config: { type: 'string', short: 'c' },
+			surreal: { type: 'string', short: 's' },
+			username: { type: 'string', short: 'u' },
+			password: { type: 'string', short: 'p' },
+			ns: { type: 'string', short: 'n' },
+			db: { type: 'string', short: 'd' },
+			output: { type: 'string', short: 'o' },
+			'no-client': { type: 'boolean' },
+			image: { type: 'string', short: 'i' },
+			version: { type: 'boolean', short: 'v' },
+			help: { type: 'boolean', short: 'h' },
+		},
+	})
 
-	program
-		.option(
-			"-f, --schemaFile [schemaFile]",
-			"a SurrealQL file or directory containing definitions",
-		)
-		.option("-c, --config [config]", "config file", "surql-gen.json")
-		.option(
-			"-s, --surreal [surreal]",
-			"SurrealDB connection url",
-			"http://localhost:8000",
-		)
-		.option("-u, --username [username]", "auth username", "root")
-		.option("-p, --password [password]", "auth password", "root")
-		.option("-n, --ns [ns]", "the namespace", "test")
-		.option("-d, --db [db]", "the database", "test")
-		.option(
-			"-o, --outputFolder [outputFolder]",
-			"output folder",
-			"client_generated",
-		)
-		.option("-g, --generateClient", "generate client", true)
-		.option("--no-generateClient", "no client generation")
-		.option(
-			"-i, --surrealImage [surrealImage]",
-			"SurrealDB image",
-			"surrealdb/surrealdb:latest",
-		);
-
-	program.parse();
-
-	const options = program.opts();
-	const __dirname = process.cwd();
-
-	if (!options.config) {
-		console.log(
-			"No config file specified - looking for surql-gen.json in current folder",
-		);
+	if (values.version) {
+		console.log(`surreal-codegen v${VERSION}`)
+		process.exit(0)
 	}
 
-	const configFilePath = resolve(__dirname, options.config || "surql-gen.json");
-
-	let fileContent: Record<string, unknown> = {};
-	try {
-		const content = await readFile(configFilePath);
-		fileContent = JSON.parse(content.toString());
-	} catch (error) {
-		const err = error as Error & { code?: string };
-		if (options.config !== "surql-gen.json" && err.code === "ENOENT") {
-			console.error("Unable to find config file", configFilePath);
-			process.exit(1);
-		}
-		if (err.code === "ENOENT") {
-			console.log("No config file found.");
-		} else {
-			console.error("");
-			console.error("Please have a look at your config file!");
-			console.error("Looks like, your configuration file is invalid.");
-			console.error("");
-			throw new Error(`Invalid configuration: ${err.message}`);
-		}
+	if (values.help) {
+		console.log(HELP)
+		process.exit(0)
 	}
 
-	const config = configFileSchema.parse({ ...options, ...fileContent });
+	renderBanner(VERSION)
 
-	try {
-		if (config.schemaFile) {
-			await connectDb(config, true);
-			try {
-				const schemaContent = await readSchemaDefinitions(config.schemaFile);
-				await insertDefinitions(schemaContent);
-			} catch (error) {
-				const err = error as Error & { code?: string };
-				if (err.code === "ENOENT") {
-					console.error("");
-					console.error(
-						"Unable to find schema file or directory",
-						resolve(__dirname, config.schemaFile),
-					);
-					console.error("Please check!");
-					console.error("");
-					process.exit(1);
-				} else {
-					throw new Error(
-						`Error reading schema file or directory: ${err.message}`,
-					);
-				}
-			}
-		} else {
-			await connectDb(config);
-		}
-
-		const tableInfo = await getAllTableInfo();
-
-		await generateTableSchema(
-			resolve(__dirname, config.outputFolder),
-			tableInfo,
-		);
-
-		if (config.generateClient) {
-			await generateClientJs(
-				resolve(__dirname, config.outputFolder),
-				Object.keys(tableInfo),
-				"surrealdb",
-			);
-		}
-	} catch (error) {
-		printSorry(error);
-		process.exit(1);
-	} finally {
-		await closeDb();
+	// Non-interactive mode: all required params provided via flags or config file
+	const flags = {
+		...(values['schema-file'] ? { schemaFile: values['schema-file'] } : {}),
+		...(values.surreal ? { surreal: values.surreal } : {}),
+		...(values.username ? { username: values.username } : {}),
+		...(values.password ? { password: values.password } : {}),
+		...(values.ns ? { ns: values.ns } : {}),
+		...(values.db ? { db: values.db } : {}),
+		...(values.output ? { outputFolder: values.output } : {}),
+		...(values['no-client'] ? { generateClient: false } : {}),
+		...(values.image ? { surrealImage: values.image } : {}),
+		...(values.config ? { config: values.config } : {}),
 	}
 
-	console.log("");
-	console.log("");
-	console.log("Thanks for using my tool");
-	console.log("");
-	console.log(
-		"Please 🙏 give a star ⭐️ on github: 👉 https://github.com/sebastianwessel/surrealdb-client-generator",
-	);
-	console.log("");
-	console.log(
-		"If you run into an issue, please let me know so it can get fixed.",
-	);
-	console.log(
-		"👉 https://github.com/sebastianwessel/surrealdb-client-generator/issues",
-	);
-	console.log("");
-	console.log("Good luck with your project. 👋 Cheers, and happy coding!");
-	console.log("");
+	const config = await runWizard({ flags })
+	await runGeneration(configFileSchema.parse(config))
+}
 
-	process.exit();
-};
-
-main();
+main().catch(err => {
+	console.error(err)
+	process.exit(1)
+})

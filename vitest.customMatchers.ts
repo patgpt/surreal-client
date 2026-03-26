@@ -1,12 +1,13 @@
-import { expect } from 'vitest'
+import { expect } from 'bun:test'
 
 function compressWhitespace(str: string): string {
 	return str.replace(/\s+/g, ' ').trim()
 }
 
 expect.extend({
-	toEqualIgnoringWhitespace(received: string, expected: string) {
-		const receivedCompressed = compressWhitespace(received)
+	toEqualIgnoringWhitespace(received: unknown, expected: string) {
+		const receivedStr = String(received)
+		const receivedCompressed = compressWhitespace(receivedStr)
 		const expectedCompressed = compressWhitespace(expected)
 
 		const pass = receivedCompressed === expectedCompressed

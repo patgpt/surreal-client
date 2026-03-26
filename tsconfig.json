@@ -3,16 +3,17 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"allowImportingTsExtensions": true,
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"noEmit": true,
 		"noUncheckedIndexedAccess": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "es2022",
-		"types": ["node", "vitest/globals"]
+		"target": "ESNext",
+		"lib": ["ESNext"],
+		"types": ["bun", "node"]
 	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "vitest.config.ts", "vitest.customMatchers.ts"],
+	"include": ["src/**/*.ts", "src/**/*.d.ts"],
 	"exclude": ["dist", "node_modules"]
 }
