@@ -2,7 +2,13 @@ import { RecordId, StringRecordId } from 'surrealdb'
 import { describe, expect, test } from 'vitest'
 import z from 'zod'
 
-const RecordIdValue = z.union([z.string(), z.number(), z.bigint(), z.record(z.string(), z.unknown()), z.array(z.unknown())])
+const RecordIdValue = z.union([
+	z.string(),
+	z.number(),
+	z.bigint(),
+	z.record(z.string(), z.unknown()),
+	z.array(z.unknown()),
+])
 
 type RecordIdValue = z.infer<typeof RecordIdValue>
 

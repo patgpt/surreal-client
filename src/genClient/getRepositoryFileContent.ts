@@ -17,5 +17,5 @@ export const get${entityName}Repository = (db: Surreal) => {
     delete${entityName}: delete${entityName}.bind(undefined, db),
   }
 }
-`;
-};
+`
+}

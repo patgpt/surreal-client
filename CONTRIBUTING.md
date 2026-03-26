@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to `@sebastianwessel/surql-gen`.
+Thanks for contributing to `@patgpt/sureal-codegen`.
 
 ## Development setup
 

@@ -257,7 +257,7 @@ If you run into an issue, please let me know so it can get fixed.
 TODO: 
 
 
-Rebrand this as  `surreal-client` by patrick kelly github.com/patgpt 
+Rebrand this as  `sureal-codegen` by patrick kelly github.com/patgpt 
 not a json file config and actual config ts,js, mjs that allows us to use env vars for codegen 
 
 bun for pm and build 

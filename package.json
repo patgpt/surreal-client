@@ -1,5 +1,5 @@
 {
-  "name": "surreal-client",
+  "name": "sureal-codegen",
   "private": false,
   "version": "0.0.1",
   "engines": {
@@ -23,11 +23,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/patgpt/surreal-client.git"
+    "url": "https://github.com/patgpt/sureal-codegen.git"
   },
-  "homepage": "https://github.com/patgpt/surreal-client",
+  "homepage": "https://github.com/patgpt/sureal-codegen",
   "bugs": {
-    "url": "https://github.com/patgpt/surreal-client/issues",
+    "url": "https://github.com/patgpt/sureal-codegen/issues",
     "email": "project@hostname.com"
   },
   "license": "MIT",

@@ -188,9 +188,7 @@ export const getZodTypeFromQLType = (
 		const allKnownTypes = unionParts.every(part => {
 			const match = part.match(typeKeywordRegex)
 			const typeKeyword = match?.[1]
-			return typeKeyword
-				? KNOWN_TYPES.includes(typeKeyword.toLowerCase() as (typeof KNOWN_TYPES)[number])
-				: false
+			return typeKeyword ? KNOWN_TYPES.includes(typeKeyword.toLowerCase() as (typeof KNOWN_TYPES)[number]) : false
 		})
 
 		// If not all known types, check for unquoted enum values (e.g., published | draft | archived)
@@ -277,15 +275,13 @@ export const getZodTypeFromQLType = (
 					return schema
 				}
 
-					// Check for union of known types (e.g., string | number)
-					const typeKeywordRegex = /^(?:option<)?([\w]+)(?:<[^>]+>)?$/i
-					const allTypes = parts.every(part => {
-						const match = part.match(typeKeywordRegex)
-						const typeKeyword = match?.[1]
-						return typeKeyword
-							? KNOWN_TYPES.includes(typeKeyword.toLowerCase() as (typeof KNOWN_TYPES)[number])
-							: false
-					})
+				// Check for union of known types (e.g., string | number)
+				const typeKeywordRegex = /^(?:option<)?([\w]+)(?:<[^>]+>)?$/i
+				const allTypes = parts.every(part => {
+					const match = part.match(typeKeywordRegex)
+					const typeKeyword = match?.[1]
+					return typeKeyword ? KNOWN_TYPES.includes(typeKeyword.toLowerCase() as (typeof KNOWN_TYPES)[number]) : false
+				})
 				if (allTypes) {
 					const schemas = parts.map(part => {
 						const subTokens: TokenizedDefinition = { ...tokens, type: part }
