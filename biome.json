@@ -1,5 +1,6 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+	"root": false,
+	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
 	"files": {
 		"includes": ["src/**/*.ts", "src/**/*.js", "**/*.json", "vitest.customMatchers.ts", "bunfig.toml"]
 	},

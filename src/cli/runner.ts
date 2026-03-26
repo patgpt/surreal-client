@@ -64,8 +64,8 @@ export async function runGeneration(config: Config): Promise<void> {
 		outro(
 			chalk.hex('#00ff41').bold('Generation complete! ◆') +
 				'\n\n' +
-				`  ${chalk.dim('⭐  Star us:')} ${chalk.cyan('https://github.com/patgpt/sureal-codegen')}\n` +
-				`  ${chalk.dim('🐛  Issues:')}  ${chalk.cyan('https://github.com/patgpt/sureal-codegen/issues')}\n\n` +
+				`  ${chalk.dim('⭐  Star us:')} ${chalk.cyan('https://github.com/patgpt/surreal-client')}\n` +
+				`  ${chalk.dim('🐛  Issues:')}  ${chalk.cyan('https://github.com/patgpt/surreal-client/issues')}\n\n` +
 				chalk.hex('#bf00ff')('  Happy hacking, cyber cowboy. 🤖'),
 		)
 	} catch (err) {

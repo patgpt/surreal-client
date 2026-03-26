@@ -1,6 +1,6 @@
 {
 	"$schema": "https://jsr.io/schema/config-file.v1.json",
-	"name": "@patgpt/sureal-codegen",
+	"name": "@patgpt/surreal-codegen",
 	"description": "A small tool which generates a typescript client for SurrealDB based on the schema of a given database",
 	"version": "0.0.1",
 	"exports": "./dist/index.js",
