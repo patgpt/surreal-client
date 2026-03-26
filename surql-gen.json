@@ -1,0 +1,10 @@
+{
+  "surreal": "http://localhost:1337",
+  "ns": "main",
+  "db": "main",
+  "username": "murphy",
+  "password": "Imwithyou7285",
+  "outputFolder": "client_generated",
+  "generateClient": true,
+  "surrealImage": "surrealdb/surrealdb:latest"
+}
