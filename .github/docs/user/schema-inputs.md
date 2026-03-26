@@ -1,6 +1,6 @@
 # Schema Inputs
 
-`surql-gen` supports two schema input modes:
+`surreal-codegen` supports two schema input modes:
 
 1. Single schema file
 2. Schema directory (recursive)
@@ -8,13 +8,13 @@
 ## Single file
 
 ```bash
-surql-gen -f ./schema.surql
+surreal-codegen -f ./schema.surql
 ```
 
 ## Directory mode
 
 ```bash
-surql-gen -f ./db/schema
+surreal-codegen -f ./db/schema
 ```
 
 Directory mode behavior:

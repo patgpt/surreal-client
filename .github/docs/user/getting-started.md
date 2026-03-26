@@ -5,13 +5,13 @@
 Run directly:
 
 ```bash
-npx surql-gen
+bunx surreal-codegen
 ```
 
 Or install as a dev dependency:
 
 ```bash
-npm i -D @sebastianwessel/surql-gen
+bun add -D surreal-codegen
 ```
 
 ## Basic usage
@@ -19,19 +19,19 @@ npm i -D @sebastianwessel/surql-gen
 Generate from a running SurrealDB instance:
 
 ```bash
-surql-gen --surreal http://localhost:8000 --username root --password root --ns test --db test
+bunx surreal-codegen --surreal http://localhost:8000 --username root --password root --ns test --db test
 ```
 
 Generate from schema definitions:
 
 ```bash
-surql-gen -f ./schema.surql
+bunx surreal-codegen -f ./schema.surql
 ```
 
 Generate from a schema directory:
 
 ```bash
-surql-gen -f ./db/schema
+bunx surreal-codegen -f ./db/schema
 ```
 
 ## Output

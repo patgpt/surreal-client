@@ -10,8 +10,8 @@ Use the manual GitHub Actions workflow:
 ## Required setup
 
 1. Configure npm Trusted Publisher for:
-   - package: `@sebastianwessel/surql-gen`
-   - repo: `sebastianwessel/surrealdb-client-generator`
+   - package: `surreal-codegen`
+   - repo: `patgpt/surreal-client`
    - workflow: `.github/workflows/release-manual.yml`
 2. Configure JSR publish from GitHub Actions for this repository (OIDC / GitHub linkage in JSR settings).
 
@@ -22,6 +22,8 @@ References:
 Important:
 - For npm Trusted Publishing, do not rely on `NPM_TOKEN` / `NODE_AUTH_TOKEN` in the release workflow.
 - The workflow publishes with `--provenance` using GitHub OIDC (`id-token: write`).
+- Validation runs with Bun before publish; npm is only used for the final registry publish step.
+- The package name is `surreal-codegen`, but the current GitHub repo is still `surreal-client`.
 
 ## What the workflow guarantees
 

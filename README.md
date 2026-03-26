@@ -1,266 +1,158 @@
-# SurrealDB Client & Zod Schema Generator
+# surreal-codegen
 
- SurrealDB Schema Generator is a handy tool that simplifies the process of generating [zod](http://zod.dev) schemas and TypeScript clients for [SurrealDB](http://surrealdb.com) based on your provided database schema.
- Its primary purpose is to offer a fundamental starting point, not to replace a full-blown automated ORM.
+<p align="center">
+  <strong>Generate Zod schemas and a typed TypeScript client from SurrealDB schemas or live databases.</strong>
+</p>
 
-## Features
+<p align="center">
+  <a href="https://surrealdb.com/docs/surrealdb"><img src="https://img.shields.io/badge/SurrealDB-Docs-FF00A0?logo=surrealdb&logoColor=white" alt="SurrealDB Docs" /></a>
+  <a href="https://bun.sh/docs"><img src="https://img.shields.io/badge/Bun-1.3.5-F9F1E1?logo=bun&logoColor=000000" alt="Bun" /></a>
+  <a href="https://zod.dev/"><img src="https://img.shields.io/badge/Zod-4-3068B7?logo=zod&logoColor=white" alt="Zod" /></a>
+  <a href="https://www.typescriptlang.org/docs/"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /></a>
+</p>
 
-- Generate zod schemas and TypeScript clients for SurrealDB.
-- Utilize your existing database schema created with excellent tools like [surrealist.app](https://surrealist.app/).
-- Benefit from a user-friendly **Designer** in Surrealist to craft your data model effortlessly.
-- Export your schema from Surrealist and use it with this tool.
-- Choose to generate only zod schemas or include a basic TypeScript client.
-- Utilize zod schemas for [CIRQL](https://cirql.starlane.studio/) if needed.
+`surreal-codegen` is the maintained generator fork used by Hey Murph. It started from `@sebastianwessel/surql-gen`, then was adapted for SurrealDB v3 and a schemaful, generated-client-first workflow.
 
-## Documentation
+The package publishes as `surreal-codegen`. Inside this workspace the folder is still named `surreal-client/` until the repo rename lands.
 
-- User and maintainer docs: [`docs/`](./docs/README.md)
-- Contribution guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+## Docs
 
-## 🚨 Warning Version 2.x
+- [Changelog](./CHANGELOG.md)
+- [Publishing Guide](./PUBLISHING.md)
+- [Contributing](./CONTRIBUTING.md)
+- [User Docs](./.github/docs/README.md)
 
-Version 2 has breaking changes!  
-The tool now uses `surrealdb` instead of `surrealdb.node` for interacting with a SurrealDB instance.
+## What It Does
 
-The change was made, because it seems that `surrealdb` is closer to the SurrealDB development process and more up to date in general.
+- reads a single SurrealQL schema file or a schema directory
+- spins up a temporary SurrealDB instance for schema-file introspection
+- connects to a running SurrealDB instance for live introspection
+- generates Zod schemas
+- generates a typed TypeScript client and repository helpers
 
-This means, the option "memory" for connections is no longer available, and you need to run against a real running SurrealDB instance (use docker).
+## Install
 
-## Compatibility Notes
+Run directly:
 
-- Internal dependency was upgraded to `zod@4`.
-- Generated schema snippets are intentionally kept within APIs that are compatible with both Zod 3 and Zod 4 (for consumers who still validate with Zod 3 in their own projects).
-- For IP assertions, Zod v4 removed `z.string().ip()` (see [Zod v4 changelog](https://zod.dev/v4/changelog)).
-- The generator therefore emits `refine`-based IP validation for cross-version compatibility (Zod 3 and Zod 4).
-- If the project moves to Zod 4-only output in the future, this can be switched to native `ipv4/ipv6` schemas.
+```bash
+bunx surreal-codegen
+```
+
+Install as a dev dependency:
+
+```bash
+bun add -D surreal-codegen
+```
+
+The package also keeps the upstream-compatible `surql-gen` bin alias:
+
+```bash
+bunx surql-gen
+```
+
+## Usage
+
+Generate from a running database:
+
+```bash
+bunx surreal-codegen \
+  --surreal http://localhost:8000 \
+  --username root \
+  --password root \
+  --ns test \
+  --db test
+```
+
+Generate from a schema file:
+
+```bash
+bunx surreal-codegen -f ./schema.surql
+```
+
+Generate from a schema directory:
+
+```bash
+bunx surreal-codegen -f ./db/schema
+```
+
+Generate without the TypeScript client:
+
+```bash
+bunx surreal-codegen -f ./schema.surql --no-client
+```
+
+## Configuration
+
+You can configure the generator with CLI flags, a config file, or both. CLI values win.
+
+The default JSON config filename is still `surql-gen.json` for compatibility with the upstream tool.
+
+Example:
+
+```json
+{
+  "schemaFile": "./schema",
+  "surreal": "http://localhost:8000",
+  "username": "root",
+  "password": "root",
+  "ns": "test",
+  "db": "test",
+  "outputFolder": "./client_generated",
+  "generateClient": true,
+  "surrealImage": "surrealdb/surrealdb:latest"
+}
+```
 
 ## How It Works
 
-1. If you provide a surql schema file:
- - An in-memory SurrealDB instance is automatically created.
- - The schema is loaded into this temporary instance.
- - Docker is required to run the temporary instance.
-2. If no schema file is provided:
- - SurrealDB Schema Generator connects to your specified database.
-3. The generator extracts the `DEFINE` information from the connected database (either in-memory or external).
-4. Based on the definitions found in the database, the zod schemas are generated.
+### Schema-file mode
 
+When you pass `-f` with a file or directory, the generator:
 
-Enjoy using SurrealDB Schema Generator to streamline your schema generation process for SurrealDB and zod.
-It's designed to make your life easier when working with these powerful technologies.
+1. starts a temporary SurrealDB container with Testcontainers
+2. loads your schema into that database
+3. introspects the resulting definitions
+4. writes generated Zod schemas and optional client files
 
-## Installation
+Docker is required for this path.
 
-You can directly execute the generation:
+### Live-database mode
 
-```bash
-npx surql-gen
-```
+When you omit `-f`, the generator connects to the database specified by `--surreal`, `--ns`, `--db`, and auth flags, then introspects that database directly.
 
-Or you can install the generator as dependency into your project.
+## Output Structure
 
-```bash
-npm i -D @sebastianwessel/surql-gen
-```
+- `_generated/`: regenerated output and record helpers
+- `schema/`: schema wrappers and customization points
+- `client/`: CRUD and repository helpers for generated tables
 
-In case you install the generator as dependency or you installed it globally, you can call directly `surql-gen`
+## Development
 
-## How to Use
-
-Configuring options for this tool is flexible and convenient. You have two main methods to choose from:
-
-1. **Config JSON File**: You can easily set your options through a simple config JSON file.
-
-2. **Command Line Interface (CLI)**: Alternatively, you can configure the options directly via the command line.
-
-And the best part? You can use both methods simultaneously if it suits your needs. In such cases, the tool intelligently merges the parameters, giving priority to the ones provided through the CLI.
-This means you have complete control over your configuration, adapting it to your preferences effortlessly.
+Install dependencies:
 
 ```bash
-Usage: surql-gen [options]
-
-Generate zod schema and typescript client code from running Surreal database
-
-Options:
-  -V, --version         output the version number
-  -f, --schemaFile      a SurrealQL file containing the definitions (default: myschema.surql)
-  -c, --config           config file (default: surreal-codegen.config.json)
-  -s, --surreal         SurrealDB connection url (default: http://localhost:8000)
-  -u, --username        auth username (default: root)
-  -p, --password        auth password (default: root)
-  -n, --ns              the namspace (default: test)
-  -d, --db              the database (default: test)
-  -o, --outputFolder    output folder (default: client_generated)
-  -g, --generateClient  generate client (default: true)
-  --no-generateClient   no client generation
-  -i, --surrealImage    SurrealDB docker image (default: surrealdb/surrealdb:latest)
-  
-  -h, --help            display help for command
+bun install
 ```
 
-## Config file
-
-You can provide the configuration via a config file.
-The config file is using same paramaters as the cli.
-
-Example:
-
-```json
-{
-  "schemaFile": "schema.surql",
-  "surreal": "memory",
-  "username": "root",
-  "password": "secret_password",
-  "ns": "my_namespace",
-  "db": "my_database",
-  "outputFolder": "./out",
-  "generateClient": true,
-  "lib": "surrealdb",
-  "surrealImage": "surrealdb/surrealdb:latest"
-  
-}
-```
-
-## Using a Schema File or Directory
-> **_NOTE:_**  Docker is required to run SurrealDB in memory.
-
-To use a schema file either provide the -f flag:
-```bash
-surql-gen -f ./path/to/your/schema.surql
- ```
-
-or you can specify the path in the config file:
-```json
-{
-  "schemaFile": "./path/to/your/schema.surql"
-}
-```
-
-You can also provide a directory path. The generator will recursively load all `.surql` and `.surrealql` files from that directory.
-
-Example:
+Run the full validation pass:
 
 ```bash
-surql-gen -f ./db/schema
+bun run ci
 ```
 
-When using a directory, you can exclude files or folders with a `.ignore` file placed in that directory.
-Each line is a glob-like pattern relative to the schema directory.
+Useful individual commands:
 
-Example `.ignore`:
-
-```txt
-# Ignore migration snapshots
-migrations/**
-
-# Ignore a specific file
-legacy.surql
+```bash
+bun run lint
+bun run typecheck
+bun run test
+bun run build
+bun run pack:dry-run
 ```
 
-using a schema file utilises a temporary in-memory SurrealDB instance to generate the zod schemas; this instance runs in a docker container.
-If you want to use a different image, you can specify it in the config file:
-```json
-{
-  "surrealImage": "surrealdb/surrealdb:latest"
-}
-```
+## Release Notes
 
-If your environment can only pull container images from a private registry, configure Testcontainers in `~/.testcontainers.properties`:
-
-```properties
-ryuk.container.image=yourregistry.com/testcontainers/ryuk:0.3.3
-```
-
-Reference: [Testcontainers configuration](https://java.testcontainers.org/features/configuration/#customizing-images)
-
-## Connecting to an Existing SurrealDB Instance
-
-To connect to an existing SurrealDB instance, simply omit the `-f` option, or omit the `schemaFile` in the config file.
-
-In this case, you need to provide the connection information for your running instance.
-
-## Releasing
-
-This repository provides a manual GitHub Actions workflow at `.github/workflows/release-manual.yml` to publish new versions.
-
-- Trigger: `workflow_dispatch` on the `main` branch
-- Inputs: `publish_jsr` and required docs confirmation (`confirm_docs_updated=true`)
-- Version source: version is taken from committed code (`package.json` and `jsr.json`) and must already be in sync
-- npm publish: uses [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) with `id-token: write`
-- optional JSR publish: uses GitHub Actions OIDC flow ([JSR docs](https://jsr.io/docs/publishing-packages#publishing-from-github-actions))
-- Git tag: created and pushed as `v<package.json.version>` after successful publish
-- GitHub Release: created automatically from the new tag with generated release notes
-
-To use Trusted Publishing, configure this GitHub repository as a trusted publisher in npm for `@sebastianwessel/surql-gen`.
-
-Note: this repository currently has no separate website docs pipeline configured in `.github/workflows`. The `README.md` is the primary published documentation source for releases.
-
-## Code Generation Structure
-
-The generated code is organized into two distinct parts for your convenience:
-
-### `_generated` Subfolder
-
-In this subfolder, you'll find schema information and other generated code that may be overwritten during subsequent runs of the tool. Here's how it works:
-
-- **Table Definition Overwrite**: If the tool detects a table definition and an existing `_generated` folder, it replaces the old folder with a new one. This ensures that you're always working with the latest generated code.
-
-- **Folder Retention**: If there's a folder for a table that no longer exists in the current run, it won't be automatically deleted. This approach gives you the flexibility to manage your codebase and project structure according to your preferences, allowing you to keep your work organized.
-
-### Other Generated Subfolders
-
-Apart from the `_generated` folder, additional subfolders are created during the initial execution of the tool.
-These subfolders are not overwritten or modified in subsequent runs.
-They serve as safe spaces for your customizations, changes, and enhancements:
-
-**Customization Freedom**: You can confidently make modifications and enhancements in these subfolders without worrying about them being altered by future executions of the tool.
-This design allows you to tailor the generated code to your project's specific requirements, ensuring a seamless development experience.
-
-## Mapping
-
-### Basic Type
-
-| SurrealQL | Zod (input)  | Zod (output) |
-|-----------|---|---|
-| TYPE number  | z.number()  | z.number() |
-| TYPE option\<number\>  | z.number().optional()  | z.number().optional() |
-| TYPE string  | z.string()  | z.string() |
-| TYPE option\<string\>  | z.string().optional()  | z.string().optional() |
-| TYPE datetime  | z.union([z.string().datetime(), z.date()]).transform((value) => value instanceof Date ? value : new Date(value))  | z.string().datetime() |
-| TYPE option\<datetime\>  | z.union([z.string().datetime(), z.date()]).transform((value) => value instanceof Date ? value : new Date(value)).optional()  | z.string().datetime().optional() |
-| TYPE bool  | z.boolean()  | z.boolean() |
-| TYPE option\<bool\>  | z.boolean().optional()  | z.boolean().optional() |
-| TYPE object  | z.object({})  | z.object({}) |
-| TYPE option\<object\>  | z.object({}).optional()  | z.object({}).optional() |
-| TYPE array  | z.array()  | z.array(z.any()) |
-| TYPE option\<array\>  | z.array(z.any()).optional()  | z.array(z.any()).optional() |
-| TYPE array\<string\>  | z.array()  | z.array(z.string()) |
-| TYPE option\<array\<string\>\>  | z.array(z.string()).optional()  | z.array(z.string()).optional() |
-| TYPE array\<number\>  | z.array()  | z.array(z.number()) |
-| TYPE option\<array\<number\>\>  | z.array(z.number()).optional()  | z.array(z.number()).optional() |
-| TYPE array\<bool\>  | z.array()  | z.array(z.boolean()) |
-| TYPE option\<array\<bool\>\>  | z.array(z.boolean()).optional()  | z.array(z.boolean()).optional() |
-| TYPE record  | z.any()  | z.any() |
-| TYPE option\<record\>  | z.any()  | z.any() |
-
----
-
-If you like this tool, I please you, to give a star ⭐️ on github:
-👉  [https://github.com/sebastianwessel/surrealdb-client-generator](https://github.com/sebastianwessel/surrealdb-client-generator)
-
-If you run into an issue, please let me know so it can get fixed.
-👉  [https://github.com/sebastianwessel/surrealdb-client-generator/issues](https://github.com/sebastianwessel/surrealdb-client-generator/issues)
-
-**Good luck with your project. 👋 Cheers, and happy coding!**
-
-
-TODO: 
-
-
-Rebrand this as  `sureal-codegen` by patrick kelly github.com/patgpt 
-not a json file config and actual config ts,js, mjs that allows us to use env vars for codegen 
-
-bun for pm and build 
-
-<!-- bun test for testing  -->
-
+- npm and JSR publishing steps live in [`PUBLISHING.md`](./PUBLISHING.md)
+- the manual GitHub Actions release flow lives in [`.github/workflows/release-manual.yml`](./.github/workflows/release-manual.yml)
+- `package.json` and `jsr.json` versions must stay in sync
+- the current GitHub repository is `patgpt/surreal-client` even though the package name is `surreal-codegen`

@@ -4,18 +4,52 @@ import { mkdirp } from 'mkdirp'
 
 export const ensureRecordSchema = async (rootPath: string) => {
 	const content = `import { z } from 'zod'
-import { RecordId, StringRecordId } from 'surrealdb'
+import { RecordId } from 'surrealdb'
 
 const RecordIdValue = z.union([z.string(), z.number(), z.bigint(), z.record(z.string(), z.unknown()), z.array(z.unknown())])
 
 type RecordIdValue = z.infer<typeof RecordIdValue>
 
 const getRecordIdTable = (value: RecordId<string>) => value.table.name
-const getStringRecordIdValue = (value: StringRecordId) => value.toString()
+
+const coerceRecordIdValue = (value: string): RecordIdValue => {
+	const trimmed = value.trim()
+
+	if (/^-?\\d+$/.test(trimmed)) {
+		const numeric = Number(trimmed)
+		if (Number.isSafeInteger(numeric)) {
+			return numeric
+		}
+	}
+
+	if (
+		(trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+		(trimmed.startsWith('[') && trimmed.endsWith(']'))
+	) {
+		try {
+			return RecordIdValue.parse(JSON.parse(trimmed))
+		} catch {
+			return value
+		}
+	}
+
+	return value
+}
+
+const createRecordIdFromString = <Table extends string>(value: string): RecordId<Table> => {
+	const separatorIndex = value.indexOf(':')
+	if (separatorIndex <= 0 || separatorIndex === value.length - 1) {
+		throw new Error('Invalid record ID string format')
+	}
+
+	const tb = value.slice(0, separatorIndex)
+	const id = value.slice(separatorIndex + 1)
+	return new RecordId(tb, coerceRecordIdValue(id)) as RecordId<Table>
+}
 
 export function recordId<Table extends string = string>(table?: Table) {
 	const tableRegex = table ? table : '[A-Za-z_][A-Za-z0-9_]*'
-	const idRegex = '[^:]+'
+	const idRegex = '.+'
 	const fullRegex = new RegExp(\`^\${tableRegex}:\${idRegex}$\`)
 
 	return z
@@ -24,11 +58,6 @@ export function recordId<Table extends string = string>(table?: Table) {
 				.custom<RecordId<string>>((val): val is RecordId<string> => val instanceof RecordId)
 				.refine((val): val is RecordId<Table> => !table || getRecordIdTable(val) === table, {
 					message: table ? \`RecordId must be of type '\${table}'\` : undefined,
-				}),
-			z
-				.custom<StringRecordId>((val): val is StringRecordId => val instanceof StringRecordId)
-				.refine(val => !table || getStringRecordIdValue(val).startsWith(\`\${table}:\`), {
-					message: table ? \`StringRecordId must start with '\${table}:'\` : undefined,
 				}),
 			z.string().regex(fullRegex, {
 				message: table
@@ -47,24 +76,15 @@ export function recordId<Table extends string = string>(table?: Table) {
 					message: table ? \`RecordId must be of type '\${table}'\` : undefined,
 				}),
 		])
-		.transform((val): RecordId<Table> | StringRecordId => {
+		.transform((val): RecordId<Table> => {
 			if (val instanceof RecordId) {
 				return val as RecordId<Table>
 			}
-			if (val instanceof StringRecordId) {
-				return val
-			}
 			if (typeof val === 'string') {
-				const [tb, ...idParts] = val.split(':')
-				const id = idParts.join(':')
-				if (!tb || !id) throw new Error('Invalid record ID string format')
-				return new StringRecordId(val)
+				return createRecordIdFromString<Table>(val)
 			}
 			if ('rid' in val) {
-				const [tb, ...idParts] = val.rid.split(':')
-				const id = idParts.join(':')
-				if (!tb || !id) throw new Error('Invalid rid object format')
-				return new StringRecordId(val.rid)
+				return createRecordIdFromString<Table>(val.rid)
 			}
 			if ('tb' in val && 'id' in val) {
 				return new RecordId(val.tb, val.id) as RecordId<Table>

@@ -40,8 +40,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
           registry-url: https://registry.npmjs.org
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
 
       - name: Upgrade npm for trusted publishing
         run: |
@@ -49,7 +53,7 @@ jobs:
           npm --version
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Ensure docs confirmation
         if: inputs.confirm_docs_updated != true
@@ -58,13 +62,16 @@ jobs:
           exit 1
 
       - name: Lint
-        run: npm run lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
 
       - name: Test
-        run: npm test
+        run: bun run test
 
       - name: Build
-        run: npm run build
+        run: bun run build
 
       - name: Validate release version files
         id: pkg
