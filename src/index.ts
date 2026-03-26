@@ -15,7 +15,7 @@ const HELP = `
 
   FLAGS
     -f, --schema-file   SurrealQL file or directory
-    -c, --config        Config file (default: surql-gen.json)
+    -c, --config        Config file (default: surreal-codegen.config.json)
     -s, --surreal       SurrealDB URL (default: http://localhost:8000)
     -u, --username      Auth username (default: root)
     -p, --password      Auth password (default: root)
