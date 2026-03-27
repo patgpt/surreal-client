@@ -45,10 +45,12 @@ npm login
 2. Publish from the repository root:
 
 ```bash
-npm publish --access public --provenance
+npm publish --access public
 ```
 
-`publishConfig.provenance` is already set in `package.json`, but keeping the flag in the command makes the intent obvious.
+Use the local command above when publishing from your machine.
+
+If you want npm provenance attestation, publish through the GitHub Actions release workflow instead. npm only supports automatic provenance generation when it can detect a supported CI/OIDC provider such as GitHub Actions.
 
 ## npm Setup Once
 
