@@ -50,6 +50,23 @@ npm publish --access public --provenance
 
 `publishConfig.provenance` is already set in `package.json`, but keeping the flag in the command makes the intent obvious.
 
+## npm Setup Once
+
+To enable npm Trusted Publishing for this repository, add a trusted publisher on npmjs.com with these values:
+
+- Package name: `surreal-codegen`
+- CI/CD provider: `GitHub Actions`
+- Repository: `patgpt/surreal-client`
+- Workflow file: `.github/workflows/release-manual.yml`
+
+The workflow is already configured for npm Trusted Publishing:
+
+- `.github/workflows/release-manual.yml` grants `id-token: write`
+- `.github/workflows/release-manual.yml` publishes with `npm publish --access public --provenance --ignore-scripts`
+- `.nvmrc` pins Node `22.16`, which satisfies npm's current GitHub Actions provenance/trusted publishing baseline
+
+After the trusted publisher is added in npm, you can publish from GitHub Actions without an `NPM_TOKEN`.
+
 ## Publish To JSR
 
 If you also want a matching JSR release:
