@@ -4,18 +4,9 @@
 	"exports": "./dist/index.js",
 	"publish": {
 		"include": ["dist/**/*.js", "dist/**/*.d.ts", "LICENSE", "README.md", "package.json"],
-		"exclude": [
-			"src",
-			".github",
-			".vscode",
-			"!dist",
-			"!dist/**/*.js",
-			"!dist/**/*.d.ts",
-			".tshy",
-			"out"
-		]
+		"exclude": ["src", ".github", ".vscode", "!dist", "!dist/**/*.js", "!dist/**/*.d.ts", ".tshy", "out"]
 	},
 	"name": "@patgpt/surreal-codegen",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"license": "MIT"
 }
