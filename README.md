@@ -85,7 +85,7 @@ bunx surreal-codegen -f ./schema.surql --no-client
 
 You can configure the generator with CLI flags, a config file, or both. CLI values win.
 
-The default JSON config filename is still `surql-gen.json` for compatibility with the upstream tool.
+The default JSON config filename is `surreal-codegen.config.json` for compatibility with the upstream tool.
 
 Example:
 

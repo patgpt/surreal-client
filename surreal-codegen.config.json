@@ -1,9 +1,9 @@
 {
-  "surreal": "http://localhost:1337",
+  "surreal": "http://localhost:8282/rpc",
   "ns": "main",
   "db": "main",
-  "username": "murphy",
-  "password": "Imwithyou7285",
+  "username": "root",
+  "password": "root",
   "outputFolder": "client_generated",
   "generateClient": true,
   "surrealImage": "surrealdb/surrealdb:latest"
