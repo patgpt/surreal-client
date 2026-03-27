@@ -1,8 +1,8 @@
-import { toUpperCamelCase } from '../helper/toUpperCamelCase.js'
+import { toUpperCamelCase } from "../helper/toUpperCamelCase.js";
 
 export const getUpdateEntityFileContent = (lib: string, entityName: string) => {
-	const entitySchemaName = `${entityName}Schema`
-	const entityNameFirstUpper = `${toUpperCamelCase(entityName)}`
+	const entitySchemaName = `${entityName}Schema`;
+	const entityNameFirstUpper = `${toUpperCamelCase(entityName)}`;
 
 	return `
 import { type Surreal, RecordId} from "${lib}";
@@ -16,5 +16,5 @@ export const update${entityNameFirstUpper} = async function (db: Surreal, id: Re
 
   return db.merge<${entityNameFirstUpper}>(id, payload);
 };
-`
-}
+`;
+};

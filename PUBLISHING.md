@@ -17,7 +17,7 @@ The `package.json` and `jsr.json` versions must match.
 
 ## Local Validation
 
-From `surreal-client/`:
+From the repository root:
 
 ```bash
 bun install --frozen-lockfile
@@ -42,7 +42,7 @@ npm whoami
 npm login
 ```
 
-2. Publish from `surreal-client/`:
+2. Publish from the repository root:
 
 ```bash
 npm publish --access public --provenance

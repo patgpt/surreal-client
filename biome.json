@@ -1,8 +1,15 @@
 {
-	"root": false,
-	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+	"root": true,
+	"$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
 	"files": {
-		"includes": ["src/**/*.ts", "src/**/*.js", "**/*.json", "vitest.customMatchers.ts", "bunfig.toml"]
+		"includes": [
+			"build.ts",
+			"src/**/*.ts",
+			"src/**/*.js",
+			"**/*.json",
+			"vitest.customMatchers.ts",
+			"bunfig.toml"
+		]
 	},
 	"linter": {
 		"enabled": true,
@@ -33,10 +40,10 @@
 	"javascript": {
 		"formatter": {
 			"enabled": true,
-			"semicolons": "asNeeded",
-			"quoteStyle": "single",
+			"semicolons": "always",
+			"quoteStyle": "double",
 			"trailingCommas": "all",
-			"arrowParentheses": "asNeeded"
+			"arrowParentheses": "always"
 		}
 	}
 }

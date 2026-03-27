@@ -1,19 +1,22 @@
-import { generateZodSchemaCode } from './generateZodSchemaCode.js'
-import { type FieldDetail, getDetailsFromDefinition } from './getDetailsFromDefinition.js'
+import { generateZodSchemaCode } from "./generateZodSchemaCode.js";
+import {
+	type FieldDetail,
+	getDetailsFromDefinition,
+} from "./getDetailsFromDefinition.js";
 
-describe('generateZodSchemaCode', () => {
-	describe('basic schema', () => {
-		it('returns schema for simple object', () => {
+describe("generateZodSchemaCode", () => {
+	describe("basic schema", () => {
+		it("returns schema for simple object", () => {
 			const definition = `
                 DEFINE FIELD reviews ON TABLE product TYPE array<string>;
                 DEFINE FIELD user ON TABLE product TYPE record<user>;
                 DEFINE FIELD rating ON TABLE product TYPE number;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -21,67 +24,92 @@ describe('generateZodSchemaCode', () => {
                     user: recordId('user'),
                     rating: z.number()
                 })
-            `)
-		})
-	})
+            `);
+		});
+	});
 
-	describe('Backticked and special field name handling', () => {
-		it('strips backticks from simple field names', () => {
+	describe("Backticked and special field name handling", () => {
+		it("strips backticks from simple field names", () => {
 			const fields: FieldDetail[] = [
-				{ name: '`type`', table: 'test', zodString: 'z.string()', skip: false },
-				{ name: '`value`', table: 'test', zodString: 'z.number()', skip: false },
-			]
-			const result = generateZodSchemaCode(fields, 'testSchema')
+				{ name: "`type`", table: "test", zodString: "z.string()", skip: false },
+				{
+					name: "`value`",
+					table: "test",
+					zodString: "z.number()",
+					skip: false,
+				},
+			];
+			const result = generateZodSchemaCode(fields, "testSchema");
 			expect(result).toEqualIgnoringWhitespace(`
                 const testSchema = z.object({
                     type: z.string(),
                     value: z.number()
                 })
-            `)
-		})
+            `);
+		});
 
-		it('strips backticks and quotes field names containing hyphens', () => {
+		it("strips backticks and quotes field names containing hyphens", () => {
 			const fields: FieldDetail[] = [
-				{ name: '`max-value`', table: 'test', zodString: 'z.number()', skip: false },
-				{ name: '`field-with-hyphen`', table: 'test', zodString: 'z.string()', skip: false },
-			]
-			const result = generateZodSchemaCode(fields, 'testSchema')
+				{
+					name: "`max-value`",
+					table: "test",
+					zodString: "z.number()",
+					skip: false,
+				},
+				{
+					name: "`field-with-hyphen`",
+					table: "test",
+					zodString: "z.string()",
+					skip: false,
+				},
+			];
+			const result = generateZodSchemaCode(fields, "testSchema");
 			expect(result).toEqualIgnoringWhitespace(`
                 const testSchema = z.object({
                     "max-value": z.number(),
                     "field-with-hyphen": z.string()
                 })
-            `)
-		})
+            `);
+		});
 
-		it('strips backticks from field names that are JavaScript reserved words and quotes them', () => {
+		it("strips backticks from field names that are JavaScript reserved words and quotes them", () => {
 			const fields: FieldDetail[] = [
-				{ name: '`default`', table: 'test', zodString: 'z.string()', skip: false },
-				{ name: '`const`', table: 'test', zodString: 'z.number()', skip: false },
-			]
-			const result = generateZodSchemaCode(fields, 'testSchema')
+				{
+					name: "`default`",
+					table: "test",
+					zodString: "z.string()",
+					skip: false,
+				},
+				{
+					name: "`const`",
+					table: "test",
+					zodString: "z.number()",
+					skip: false,
+				},
+			];
+			const result = generateZodSchemaCode(fields, "testSchema");
 			// Assuming your sanitizeJSKey or equivalent quotes reserved words
 			expect(result).toEqualIgnoringWhitespace(`
                 const testSchema = z.object({
                     default: z.string(),
                     const: z.number()
                 })
-            `)
-		})
-	})
+            `);
+		});
+	});
 
-	describe('object schema', () => {
-		it('returns schema for simple object', () => {
+	describe("object schema", () => {
+		it("returns schema for simple object", () => {
 			const definition = `
                 DEFINE FIELD review ON TABLE product TYPE object;
                 DEFINE FIELD review.rating ON TABLE product TYPE number;
                 DEFINE FIELD review.comment ON TABLE product TYPE string;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -90,20 +118,20 @@ describe('generateZodSchemaCode', () => {
                         comment: z.string()
                     })
                 })
-            `)
-		})
+            `);
+		});
 
-		it('returns schema for optional object', () => {
+		it("returns schema for optional object", () => {
 			const definition = `
                 DEFINE FIELD review ON TABLE product TYPE option<object>;
                 DEFINE FIELD review.rating ON TABLE product TYPE number;
                 DEFINE FIELD review.comment ON TABLE product TYPE string;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -112,20 +140,20 @@ describe('generateZodSchemaCode', () => {
                         comment: z.string()
                     }).optional()
                 })
-            `)
-		})
+            `);
+		});
 
-		it('returns schema for optional object derived from all values being optional', () => {
+		it("returns schema for optional object derived from all values being optional", () => {
 			const definition = `
                 DEFINE FIELD review ON TABLE product TYPE object;
                 DEFINE FIELD review.rating ON TABLE product TYPE option<number>;
                 DEFINE FIELD review.comment ON TABLE product TYPE option<string>;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -134,21 +162,21 @@ describe('generateZodSchemaCode', () => {
                         comment: z.string().optional()
                     }).optional()
                 })
-            `)
-		})
+            `);
+		});
 
-		it('returns schema for object with nested array', () => {
+		it("returns schema for object with nested array", () => {
 			const definition = `
                 DEFINE FIELD review ON TABLE product TYPE object;
                 DEFINE FIELD review.related ON TABLE product TYPE array<object>;
                 DEFINE FIELD review.related[*].name ON TABLE product TYPE string;
                 DEFINE FIELD review.related[*].rating ON TABLE product TYPE number;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -159,10 +187,10 @@ describe('generateZodSchemaCode', () => {
                         }).array()
                     })
                 })
-            `)
-		})
+            `);
+		});
 
-		it('returns schema for complex object', () => {
+		it("returns schema for complex object", () => {
 			const definition = `
                 DEFINE FIELD name ON TABLE product TYPE string;
                 DEFINE FIELD price ON TABLE product TYPE number;
@@ -185,12 +213,12 @@ describe('generateZodSchemaCode', () => {
                 DEFINE FIELD review.related[*].meta.rating ON TABLE product TYPE number;
                 DEFINE FIELD review.related[*].meta.comment ON TABLE product TYPE string;
                 DEFINE FIELD review.related[*].meta.tags ON TABLE product TYPE array<string>;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -220,10 +248,10 @@ describe('generateZodSchemaCode', () => {
                         }).array()
                     })
                 })
-            `)
-		})
+            `);
+		});
 
-		it('returns schema for complex object with duplicate field with asterisk syntax', () => {
+		it("returns schema for complex object with duplicate field with asterisk syntax", () => {
 			const definition = `
                 DEFINE FIELD review ON TABLE product TYPE object;
                 DEFINE FIELD review.rating ON TABLE product TYPE number;
@@ -234,12 +262,12 @@ describe('generateZodSchemaCode', () => {
                 DEFINE FIELD review.author.tags ON TABLE product TYPE array<string>;
                 DEFINE FIELD review.author.tags[*] ON TABLE product TYPE string;
                 DEFINE FIELD review.author.user ON TABLE product TYPE record<user>;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
 			expect(generatedSchema).toEqualIgnoringWhitespace(`
                 const schema = z.object({
@@ -254,94 +282,119 @@ describe('generateZodSchemaCode', () => {
                         })
                     })
                 })
-            `)
-		})
+            `);
+		});
 
-		it('should skip standalone [*] fields that result in empty names', () => {
+		it("should skip standalone [*] fields that result in empty names", () => {
 			const definition = `
                 DEFINE FIELD permissions ON TABLE role TYPE array<object>;
                 DEFINE FIELD permissions[*] ON TABLE role TYPE object;
                 DEFINE FIELD permissions[*].id ON TABLE role TYPE string;
                 DEFINE FIELD [*] ON TABLE role TYPE array DEFAULT [];
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'schema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "schema");
 
-			expect(generatedSchema).toContain('permissions: z.object({')
-			expect(generatedSchema).toContain('id: z.string()')
-			expect(generatedSchema).not.toContain(': z.array(z.unknown())')
-		})
+			expect(generatedSchema).toContain("permissions: z.object({");
+			expect(generatedSchema).toContain("id: z.string()");
+			expect(generatedSchema).not.toContain(": z.array(z.unknown())");
+		});
 
 		// Bug 1: Empty field name from nested array field definitions using dot-star syntax
-		it('should skip dot-star array element definitions (permissions.*)', () => {
+		it("should skip dot-star array element definitions (permissions.*)", () => {
 			const definition = `
                 DEFINE FIELD permissions ON TABLE role TYPE array DEFAULT [];
                 DEFINE FIELD permissions.* ON TABLE role TYPE object;
                 DEFINE FIELD permissions.*.id ON TABLE role TYPE record<permission>;
                 DEFINE FIELD permissions.*.is_deny ON TABLE role TYPE bool DEFAULT false;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, true))
-			const generatedSchema = generateZodSchemaCode(fields, 'roleInputSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, true));
+			const generatedSchema = generateZodSchemaCode(fields, "roleInputSchema");
 
 			// Should NOT have empty field name
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-			expect(generatedSchema).not.toContain(': z.array(z.unknown())')
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+			expect(generatedSchema).not.toContain(": z.array(z.unknown())");
 			// Should have permissions as an array
-			expect(generatedSchema).toContain('permissions:')
-		})
+			expect(generatedSchema).toContain("permissions:");
+		});
 
-		it('should handle mixed bracket and dot-star array syntax', () => {
+		it("should handle mixed bracket and dot-star array syntax", () => {
 			const definition = `
                 DEFINE FIELD items ON TABLE test TYPE array DEFAULT [];
                 DEFINE FIELD items.* ON TABLE test TYPE object;
                 DEFINE FIELD items.*.name ON TABLE test TYPE string;
                 DEFINE FIELD tags ON TABLE test TYPE array<string>;
                 DEFINE FIELD tags[*] ON TABLE test TYPE string;
-            `
+            `;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'testSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "testSchema");
 
 			// Should have both items and tags without empty field names
-			expect(generatedSchema).toContain('items:')
-			expect(generatedSchema).toContain('tags:')
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-		})
+			expect(generatedSchema).toContain("items:");
+			expect(generatedSchema).toContain("tags:");
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+		});
 
-		it('should handle backtick-wrapped field names with dot-star syntax', () => {
+		it("should handle backtick-wrapped field names with dot-star syntax", () => {
 			const fields: FieldDetail[] = [
-				{ name: '`field-items`', table: 'test', zodString: 'z.array(z.unknown())', skip: false },
-				{ name: '`field-items`.*', table: 'test', zodString: 'z.object({})', skip: false },
-				{ name: '`field-items`.*.name', table: 'test', zodString: 'z.string()', skip: false },
-			]
-			const generatedSchema = generateZodSchemaCode(fields, 'testSchema')
+				{
+					name: "`field-items`",
+					table: "test",
+					zodString: "z.array(z.unknown())",
+					skip: false,
+				},
+				{
+					name: "`field-items`.*",
+					table: "test",
+					zodString: "z.object({})",
+					skip: false,
+				},
+				{
+					name: "`field-items`.*.name",
+					table: "test",
+					zodString: "z.string()",
+					skip: false,
+				},
+			];
+			const generatedSchema = generateZodSchemaCode(fields, "testSchema");
 
 			// Should NOT have empty field name from `field-items`.*
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-			expect(generatedSchema).toContain('"field-items":')
-		})
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+			expect(generatedSchema).toContain('"field-items":');
+		});
 
-		it('should handle backtick-wrapped field names with bracket syntax', () => {
+		it("should handle backtick-wrapped field names with bracket syntax", () => {
 			const fields: FieldDetail[] = [
-				{ name: '`special-tags`', table: 'test', zodString: 'z.array(z.string())', skip: false },
-				{ name: '`special-tags`[*]', table: 'test', zodString: 'z.string()', skip: false },
-			]
-			const generatedSchema = generateZodSchemaCode(fields, 'testSchema')
+				{
+					name: "`special-tags`",
+					table: "test",
+					zodString: "z.array(z.string())",
+					skip: false,
+				},
+				{
+					name: "`special-tags`[*]",
+					table: "test",
+					zodString: "z.string()",
+					skip: false,
+				},
+			];
+			const generatedSchema = generateZodSchemaCode(fields, "testSchema");
 
 			// Should NOT have empty field name from `special-tags`[*]
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-			expect(generatedSchema).toContain('"special-tags":')
-		})
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+			expect(generatedSchema).toContain('"special-tags":');
+		});
 
-		it('should handle deeply nested dot-star array syntax', () => {
+		it("should handle deeply nested dot-star array syntax", () => {
 			const definition = `
 				DEFINE FIELD data ON TABLE test TYPE object;
 				DEFINE FIELD data.items ON TABLE test TYPE array;
@@ -349,71 +402,74 @@ describe('generateZodSchemaCode', () => {
 				DEFINE FIELD data.items.*.values ON TABLE test TYPE array;
 				DEFINE FIELD data.items.*.values.* ON TABLE test TYPE object;
 				DEFINE FIELD data.items.*.values.*.name ON TABLE test TYPE string;
-			`
+			`;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, false))
-			const generatedSchema = generateZodSchemaCode(fields, 'testSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, false));
+			const generatedSchema = generateZodSchemaCode(fields, "testSchema");
 
 			// Should NOT have empty field names
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-			expect(generatedSchema).not.toContain(': z.array(z.unknown())')
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+			expect(generatedSchema).not.toContain(": z.array(z.unknown())");
 			// Should have proper nested structure
-			expect(generatedSchema).toContain('data:')
-			expect(generatedSchema).toContain('items:')
-			expect(generatedSchema).toContain('values:')
-			expect(generatedSchema).toContain('name:')
-		})
+			expect(generatedSchema).toContain("data:");
+			expect(generatedSchema).toContain("items:");
+			expect(generatedSchema).toContain("values:");
+			expect(generatedSchema).toContain("name:");
+		});
 
-		it('should generate .array().optional() for optional arrays with dot-star nested objects', () => {
+		it("should generate .array().optional() for optional arrays with dot-star nested objects", () => {
 			const definition = `
 				DEFINE FIELD images ON TABLE recipe TYPE option<array<record<asset>>>;
 				DEFINE FIELD images.* ON TABLE recipe TYPE record<asset>;
-			`
+			`;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, true))
-			const generatedSchema = generateZodSchemaCode(fields, 'recipeInputSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, true));
+			const generatedSchema = generateZodSchemaCode(
+				fields,
+				"recipeInputSchema",
+			);
 
-			expect(generatedSchema).toContain('.array().optional()')
-			expect(generatedSchema).not.toContain('.optional().array()')
-		})
+			expect(generatedSchema).toContain(".array().optional()");
+			expect(generatedSchema).not.toContain(".optional().array()");
+		});
 
-		it('should generate .array().optional() for optional arrays with bracket nested objects', () => {
+		it("should generate .array().optional() for optional arrays with bracket nested objects", () => {
 			const definition = `
 				DEFINE FIELD tags ON TABLE post TYPE option<array<record<tag>>>;
 				DEFINE FIELD tags[*] ON TABLE post TYPE record<tag>;
-			`
+			`;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, true))
-			const generatedSchema = generateZodSchemaCode(fields, 'postInputSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, true));
+			const generatedSchema = generateZodSchemaCode(fields, "postInputSchema");
 
-			expect(generatedSchema).toContain('.array().optional()')
-			expect(generatedSchema).not.toContain('.optional().array()')
-		})
+			expect(generatedSchema).toContain(".array().optional()");
+			expect(generatedSchema).not.toContain(".optional().array()");
+		});
 
-		it('should handle optional object arrays with nested properties using dot-star', () => {
+		it("should handle optional object arrays with nested properties using dot-star", () => {
 			const definition = `
 				DEFINE FIELD grants ON TABLE role TYPE option<array<object>>;
 				DEFINE FIELD grants.* ON TABLE role TYPE object;
 				DEFINE FIELD grants.*.id ON TABLE role TYPE record<permission>;
 				DEFINE FIELD grants.*.is_deny ON TABLE role TYPE bool DEFAULT false;
-			`
+			`;
 			const fields = definition
-				.split(';')
-				.filter(x => x.trim().length)
-				.map(def => getDetailsFromDefinition(def, true))
-			const generatedSchema = generateZodSchemaCode(fields, 'roleInputSchema')
+				.split(";")
+				.filter((x) => x.trim().length)
+				.map((def) => getDetailsFromDefinition(def, true));
+			const generatedSchema = generateZodSchemaCode(fields, "roleInputSchema");
 
-			expect(generatedSchema).toContain('grants:')
-			expect(generatedSchema).toContain('.array().optional()')
-			expect(generatedSchema).toContain('id:')
-			expect(generatedSchema).toContain('is_deny:')
-			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./)
-		})
-	})
-})
+			expect(generatedSchema).toContain("grants:");
+			expect(generatedSchema).toContain(".array().optional()");
+			expect(generatedSchema).toContain("id:");
+			expect(generatedSchema).toContain("is_deny:");
+			expect(generatedSchema).not.toMatch(/^\s*:\s*z\./);
+		});
+	});
+});

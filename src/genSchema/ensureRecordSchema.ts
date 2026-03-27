@@ -1,6 +1,6 @@
-import { existsSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { mkdirp } from 'mkdirp'
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { mkdirp } from "mkdirp";
 
 export const ensureRecordSchema = async (rootPath: string) => {
 	const content = `import { z } from 'zod'
@@ -91,14 +91,14 @@ export function recordId<Table extends string = string>(table?: Table) {
 			}
 			throw new Error('Invalid input for RecordId')
 		});
-  }`
+  }`;
 
-	await mkdirp(rootPath)
+	await mkdirp(rootPath);
 
-	const fileName = join(rootPath, 'recordSchema.ts')
+	const fileName = join(rootPath, "recordSchema.ts");
 
-	console.log(fileName)
+	console.log(fileName);
 	if (!existsSync(fileName)) {
-		writeFileSync(fileName, content, { flag: 'wx' })
+		writeFileSync(fileName, content, { flag: "wx" });
 	}
-}
+};

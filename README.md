@@ -13,7 +13,7 @@
 
 `surreal-codegen` is the maintained generator fork used by Hey Murph. It started from `@sebastianwessel/surql-gen`, then was adapted for SurrealDB v3 and a schemaful, generated-client-first workflow.
 
-The package publishes as `surreal-codegen`. Inside this workspace the folder is still named `surreal-client/` until the repo rename lands.
+The package publishes as `surreal-codegen`. The GitHub repository is still `patgpt/surreal-client` until the repo rename lands.
 
 ## Docs
 
@@ -144,6 +144,7 @@ Useful individual commands:
 
 ```bash
 bun run lint
+bun run lint:fix
 bun run typecheck
 bun run test
 bun run build

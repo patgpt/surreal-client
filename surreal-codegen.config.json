@@ -1,10 +1,10 @@
 {
-  "surreal": "http://localhost:8282/rpc",
-  "ns": "main",
-  "db": "main",
-  "username": "root",
-  "password": "root",
-  "outputFolder": "client_generated",
-  "generateClient": true,
-  "surrealImage": "surrealdb/surrealdb:latest"
+	"surreal": "http://localhost:8282/rpc",
+	"ns": "main",
+	"db": "main",
+	"username": "root",
+	"password": "root",
+	"outputFolder": "client_generated",
+	"generateClient": true,
+	"surrealImage": "surrealdb/surrealdb:latest"
 }

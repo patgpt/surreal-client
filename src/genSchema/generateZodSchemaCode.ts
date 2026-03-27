@@ -1,134 +1,162 @@
-import type { FieldDetail } from './getDetailsFromDefinition.js'
+import type { FieldDetail } from "./getDetailsFromDefinition.js";
+
+interface FieldMap {
+	[key: string]: string | FieldMap;
+}
 
 const escapeRegExp = (string: string) => {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
+	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
 const createArraySuffixRegex = (key: string) => {
-	const escapedKey = escapeRegExp(key)
-	return new RegExp(`(?<!${escapedKey})(\\[\\*\\]|\\.\\*)`, 'g')
-}
+	const escapedKey = escapeRegExp(key);
+	return new RegExp(`(?<!${escapedKey})(\\[\\*\\]|\\.\\*)`, "g");
+};
 
-export const generateZodSchemaCode = (fields: FieldDetail[], schemaName: string): string => {
-	// biome-ignore lint/suspicious/noExplicitAny: ok here
-	const buildSchema = (fieldMap: { [key: string]: any }, fields: FieldDetail[]) => {
+export const generateZodSchemaCode = (
+	fields: FieldDetail[],
+	schemaName: string,
+): string => {
+	const buildSchema = (fieldMap: FieldMap, fields: FieldDetail[]) => {
 		for (const field of fields) {
-			if (field.name.match(/^(`[^`]+`|[^.`]+)\[\*\]$/) || field.name.match(/^(`[^`]+`|[^.`]+)\.\*$/)) {
-				continue
+			if (
+				field.name.match(/^(`[^`]+`|[^.`]+)\[\*\]$/) ||
+				field.name.match(/^(`[^`]+`|[^.`]+)\.\*$/)
+			) {
+				continue;
 			}
 
 			const parts = field.name
-				.split('.')
-				.map(originalPart => {
-					const part = originalPart.replace('[*]', '')
+				.split(".")
+				.map((originalPart) => {
+					const part = originalPart.replace("[*]", "");
 
 					// Strip backticks if present
-					if (part.startsWith('`') && part.endsWith('`')) {
-						return part.replace(/`/g, '')
+					if (part.startsWith("`") && part.endsWith("`")) {
+						return part.replace(/`/g, "");
 					}
-					return part
+					return part;
 				})
-				.filter(part => part.length > 0 && part !== '*')
+				.filter((part) => part.length > 0 && part !== "*");
 
 			if (parts.length === 0) {
-				continue
+				continue;
 			}
-			let current = fieldMap
+			let current = fieldMap;
 
 			// Todo - handle default values
-			const _fieldDefault = undefined //field.default
+			const _fieldDefault = undefined; //field.default
 
-			let i = 0
+			let i = 0;
 			for (const part of parts) {
 				if (i === parts.length - 1) {
-					if (current[part] && typeof current[part] === 'string') {
-						i++
-						continue
+					if (current[part] && typeof current[part] === "string") {
+						i++;
+						continue;
 					}
-					let zodString = field.zodString
-					if (field.default !== undefined && field.default !== null && !field.zodString.includes('.optional()')) {
-						const defaultValue = field.default
-						if (defaultValue === 'ALWAYS' || defaultValue.startsWith('ALWAYS ')) {
-							continue
-						}
-						const sanitizedDefault = defaultValue.replace(/^["']|["']$/g, '')
+					let zodString = field.zodString;
+					if (
+						field.default !== undefined &&
+						field.default !== null &&
+						!field.zodString.includes(".optional()")
+					) {
+						const defaultValue = field.default;
 						if (
-							sanitizedDefault === '[]' ||
-							sanitizedDefault === '{}' ||
-							sanitizedDefault === 'null' ||
-							sanitizedDefault === 'true' ||
-							sanitizedDefault === 'false' ||
-							/^-?\d+(\.\d+)?$/.test(sanitizedDefault) ||
-							sanitizedDefault.startsWith('[') ||
-							sanitizedDefault.startsWith('{')
+							defaultValue === "ALWAYS" ||
+							defaultValue.startsWith("ALWAYS ")
 						) {
-							zodString += `.default(${sanitizedDefault})`
+							continue;
+						}
+						const sanitizedDefault = defaultValue.replace(/^["']|["']$/g, "");
+						if (
+							sanitizedDefault === "[]" ||
+							sanitizedDefault === "{}" ||
+							sanitizedDefault === "null" ||
+							sanitizedDefault === "true" ||
+							sanitizedDefault === "false" ||
+							/^-?\d+(\.\d+)?$/.test(sanitizedDefault) ||
+							sanitizedDefault.startsWith("[") ||
+							sanitizedDefault.startsWith("{")
+						) {
+							zodString += `.default(${sanitizedDefault})`;
 						} else {
-							zodString += `.default("${sanitizedDefault.replace(/"/g, '\\"')}")`
+							zodString += `.default("${sanitizedDefault.replace(/"/g, '\\"')}")`;
 						}
 					}
-					current[part] = zodString
+					current[part] = zodString;
 				} else {
-					if (!current[part] || typeof current[part] === 'string') {
-						current[part] = {}
+					if (!current[part] || typeof current[part] === "string") {
+						current[part] = {};
 					}
-					current = current[part]
+					current = current[part];
 				}
-				i++
+				i++;
 			}
 		}
-	}
+	};
 
-	const generateCode = (fieldMap: { [key: string]: unknown }, schemaName: string): string => {
-		// biome-ignore lint/suspicious/noExplicitAny: ok here
-		const buildObject = (obj: { [key: string]: any }, parentKey = ''): string => {
+	const generateCode = (fieldMap: FieldMap, schemaName: string): string => {
+		const buildObject = (obj: FieldMap, parentKey = ""): string => {
 			const entries = Object.entries(obj).map(([key, value]) => {
-				const fullKey = parentKey ? `${parentKey}.${key}` : key
-				const regex = createArraySuffixRegex(key)
-				const isArray = fields.some(f => {
-					const normalized = f.name.replace(regex, '')
-					return normalized.includes(`${fullKey}[*]`) || normalized.includes(`${fullKey}.*`)
-				})
+				const fullKey = parentKey ? `${parentKey}.${key}` : key;
+				const regex = createArraySuffixRegex(key);
+				const isArray = fields.some((f) => {
+					const normalized = f.name.replace(regex, "");
+					return (
+						normalized.includes(`${fullKey}[*]`) ||
+						normalized.includes(`${fullKey}.*`)
+					);
+				});
 
-				const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key)
-				const quotedKey = needsQuotes ? `"${key}"` : key
+				const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key);
+				const quotedKey = needsQuotes ? `"${key}"` : key;
 
-				if (typeof value === 'string') {
-					if (isArray && !value.includes('.array()') && !value.startsWith('z.array(')) {
-						const hasOptional = value.includes('.optional()')
-						const baseValue = hasOptional ? value.replace('.optional()', '') : value
-						return `${quotedKey}: ${baseValue}.array()${hasOptional ? '.optional()' : ''}`
+				if (typeof value === "string") {
+					if (
+						isArray &&
+						!value.includes(".array()") &&
+						!value.startsWith("z.array(")
+					) {
+						const hasOptional = value.includes(".optional()");
+						const baseValue = hasOptional
+							? value.replace(".optional()", "")
+							: value;
+						return `${quotedKey}: ${baseValue}.array()${hasOptional ? ".optional()" : ""}`;
 					}
-					return `${quotedKey}: ${value}`
+					return `${quotedKey}: ${value}`;
 				}
-				const innerObject = buildObject(value, fullKey)
-				let objectSchema = `z.object({\n${innerObject}\n  })`
+
+				const innerObject = buildObject(value, fullKey);
+				let objectSchema = `z.object({\n${innerObject}\n  })`;
 
 				const allOptional = Object.values(value).every(
-					v => typeof v === 'string' && (v.includes('.optional()') || v.endsWith('.passthrough()')),
-				)
+					(v) =>
+						typeof v === "string" &&
+						(v.includes(".optional()") || v.endsWith(".passthrough()")),
+				);
 
-				const fieldSchema = fields.find(f => f.name === fullKey)
-				const isOptionalFromSchema = fieldSchema?.zodString.includes('.optional()')
+				const fieldSchema = fields.find((f) => f.name === fullKey);
+				const isOptionalFromSchema =
+					fieldSchema?.zodString.includes(".optional()");
 
 				if (isArray) {
-					objectSchema += '.array()'
+					objectSchema += ".array()";
 				}
 
 				if (allOptional || isOptionalFromSchema) {
-					objectSchema += '.optional()'
+					objectSchema += ".optional()";
 				}
 
-				return `${quotedKey}: ${objectSchema}`
-			})
-			return entries.join(',\n  ')
-		}
+				return `${quotedKey}: ${objectSchema}`;
+			});
+			return entries.join(",\n  ");
+		};
 
-		const schema = `z.object({\n${buildObject(fieldMap)}\n})`
-		return `const ${schemaName} = ${schema}`
-	}
+		const schema = `z.object({\n${buildObject(fieldMap)}\n})`;
+		return `const ${schemaName} = ${schema}`;
+	};
 
-	const fieldMap: { [key: string]: unknown } = {}
-	buildSchema(fieldMap, fields)
-	return generateCode(fieldMap, schemaName)
-}
+	const fieldMap: FieldMap = {};
+	buildSchema(fieldMap, fields);
+	return generateCode(fieldMap, schemaName);
+};

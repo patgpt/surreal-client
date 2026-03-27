@@ -15,6 +15,7 @@ bun install --frozen-lockfile
 
 ```bash
 bun run lint
+bun run lint:fix
 bun run typecheck
 bun run test
 bun run build

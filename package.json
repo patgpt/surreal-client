@@ -1,7 +1,7 @@
 {
 	"name": "surreal-codegen",
 	"private": false,
-	"version": "0.0.1",
+	"version": "0.1.1",
 	"type": "module",
 	"engines": {
 		"bun": ">=1.1.0"
@@ -53,11 +53,12 @@
 		"clean": "node clean.mjs",
 		"start": "bun dist/index.js",
 		"dev": "bun src/index.ts",
-		"build": "bun run clean && node build.mjs",
+		"build": "bun run clean && bun run ./build.ts && bunx tsc -p tsconfig.build.json",
 		"ci": "bun run lint && bun run typecheck && bun run test && bun run build",
-		"pack:dry-run": "npm pack --dry-run",
+		"pack:dry-run": "npm pack --dry-run --cache ./.npm",
 		"typecheck": "tsc --noEmit -p tsconfig.json",
-		"lint": "biome check --write .",
+		"lint": "biome lint .",
+		"lint:fix": "biome check --write .",
 		"test": "bun test",
 		"prepublishOnly": "bun run ci"
 	},
@@ -84,11 +85,11 @@
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
-			"import": {
-				"default": "./dist/index.js"
-			}
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
 		}
 	},
 	"main": "./dist/index.js",
-	"module": "./dist/index.js"
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts"
 }

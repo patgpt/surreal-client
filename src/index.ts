@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
 import { parseArgs } from "node:util";
+import packageJson from "../package.json";
 import { renderBanner } from "./cli/banner.js";
 import { runGeneration } from "./cli/runner.js";
 import { runWizard } from "./cli/wizard.js";
 import { configFileSchema } from "./config/configFileSchema.js";
 
-const VERSION = "0.0.1";
+const VERSION = packageJson.version;
 
 const HELP = `
   surreal-codegen — SurrealDB TypeScript client generator

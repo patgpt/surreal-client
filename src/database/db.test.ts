@@ -1,86 +1,88 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
-import type { Config } from '../config/types.js'
+import { beforeEach, describe, expect, it, mock } from "bun:test";
+import type { Config } from "../config/types.js";
 
-const connectMock = mock()
-const useMock = mock()
-const signinMock = mock()
-const closeMock = mock()
+const connectMock = mock();
+const useMock = mock();
+const signinMock = mock();
+const closeMock = mock();
 
-mock.module('surrealdb', () => ({
+mock.module("surrealdb", () => ({
 	Surreal: mock(function SurrealMock() {
 		return {
 			connect: connectMock,
 			use: useMock,
 			signin: signinMock,
 			close: closeMock,
-		}
+		};
 	}),
-}))
+}));
 
-describe('connectDb', () => {
+describe("connectDb", () => {
 	const config: Config = {
 		schemaFile: undefined,
-		surreal: 'http://localhost:8000',
-		db: 'test-db',
-		ns: 'test-ns',
-		username: 'user',
-		password: 'pass',
-		outputFolder: 'client_generated',
+		surreal: "http://localhost:8000",
+		db: "test-db",
+		ns: "test-ns",
+		username: "user",
+		password: "pass",
+		outputFolder: "client_generated",
 		generateClient: true,
-		surrealImage: 'surrealdb/surrealdb:latest',
-	}
+		surrealImage: "surrealdb/surrealdb:latest",
+	};
 
 	beforeEach(() => {
-		connectMock.mockClear()
-		useMock.mockClear()
-		signinMock.mockClear()
-		closeMock.mockClear()
-		connectMock.mockResolvedValue(undefined)
-		useMock.mockResolvedValue(undefined)
-		closeMock.mockResolvedValue(undefined)
-	})
+		connectMock.mockClear();
+		useMock.mockClear();
+		signinMock.mockClear();
+		closeMock.mockClear();
+		connectMock.mockResolvedValue(undefined);
+		useMock.mockResolvedValue(undefined);
+		closeMock.mockResolvedValue(undefined);
+	});
 
-	it('uses namespace/database signin payload first', async () => {
-		signinMock.mockResolvedValue(undefined)
+	it("uses namespace/database signin payload first", async () => {
+		signinMock.mockResolvedValue(undefined);
 
-		const { connectDb, closeDb } = await import('./db.ts')
-		await connectDb(config)
-		await closeDb()
+		const { connectDb, closeDb } = await import("./db.ts");
+		await connectDb(config);
+		await closeDb();
 
-		expect(signinMock).toHaveBeenCalledTimes(1)
+		expect(signinMock).toHaveBeenCalledTimes(1);
 		expect(signinMock).toHaveBeenCalledWith({
-			namespace: 'test-ns',
-			database: 'test-db',
-			username: 'user',
-			password: 'pass',
-		})
+			namespace: "test-ns",
+			database: "test-db",
+			username: "user",
+			password: "pass",
+		});
 		expect(useMock).toHaveBeenCalledWith({
-			namespace: 'test-ns',
-			database: 'test-db',
-		})
-	})
+			namespace: "test-ns",
+			database: "test-db",
+		});
+	});
 
-	it('falls back to username/password signin payload if scoped signin fails', async () => {
-		signinMock.mockRejectedValueOnce(new Error('scoped signin failed')).mockResolvedValueOnce(undefined)
+	it("falls back to username/password signin payload if scoped signin fails", async () => {
+		signinMock
+			.mockRejectedValueOnce(new Error("scoped signin failed"))
+			.mockResolvedValueOnce(undefined);
 
-		const { connectDb, closeDb } = await import('./db.ts')
-		await connectDb(config)
-		await closeDb()
+		const { connectDb, closeDb } = await import("./db.ts");
+		await connectDb(config);
+		await closeDb();
 
-		expect(signinMock).toHaveBeenCalledTimes(2)
+		expect(signinMock).toHaveBeenCalledTimes(2);
 		expect(signinMock).toHaveBeenNthCalledWith(1, {
-			namespace: 'test-ns',
-			database: 'test-db',
-			username: 'user',
-			password: 'pass',
-		})
+			namespace: "test-ns",
+			database: "test-db",
+			username: "user",
+			password: "pass",
+		});
 		expect(signinMock).toHaveBeenNthCalledWith(2, {
-			username: 'user',
-			password: 'pass',
-		})
+			username: "user",
+			password: "pass",
+		});
 		expect(useMock).toHaveBeenCalledWith({
-			namespace: 'test-ns',
-			database: 'test-db',
-		})
-	})
-})
+			namespace: "test-ns",
+			database: "test-db",
+		});
+	});
+});
